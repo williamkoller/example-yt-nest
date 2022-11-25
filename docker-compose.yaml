@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  example-yt-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: example-yt-api
+    entrypoint: sh -c "yarn && yarn start:dev"
+    env_file:
+      - .env
+    volumes:
+      - .:/app/
+      - /app/node_modules
+    networks:
+      - example-yt-net
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - example-yt-mongo
+
+  example-yt-mongo:
+    image: mongo:latest
+    container_name: example-yt-mongo
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - ${MONGODB_PORT}:${MONGODB_PORT}
+    networks:
+      - example-yt-net
+
+
+networks:
+  example-yt-net:
+
+volumes:
+  mongo-data:
