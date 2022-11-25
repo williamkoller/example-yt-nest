@@ -6,6 +6,8 @@ import {
   Param,
   Delete,
   Put,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -17,6 +19,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserResponseType> {
@@ -24,16 +27,27 @@ export class UsersController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   async findAll(): Promise<UserResponseType[]> {
     return await this.usersService.findAll();
   }
 
   @Get(':_id')
+  @HttpCode(HttpStatus.OK)
   async findOne(@Param('_id') _id: string): Promise<UserResponseType> {
     return await this.usersService.findOneById(_id);
   }
 
+  @Get('find-one-by-email/:email')
+  @HttpCode(HttpStatus.OK)
+  async findOneByEmail(
+    @Param('email') email: string,
+  ): Promise<UserResponseType> {
+    return await this.usersService.findOneEmail(email);
+  }
+
   @Put(':_id')
+  @HttpCode(HttpStatus.OK)
   async update(
     @Param('_id') _id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -42,7 +56,8 @@ export class UsersController {
   }
 
   @Delete(':_id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('_id') _id: string): Promise<void> {
-    return await this.usersService.remove(_id);
+    await this.usersService.remove(_id);
   }
 }

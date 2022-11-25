@@ -58,6 +58,15 @@ export class UsersService {
     });
   }
 
+  async findOneEmail(email: string): Promise<UserResponseType> {
+    const userFound = await this.findOneByEmail(email);
+    if (!userFound) {
+      throw new NotFoundException('User not found');
+    }
+
+    return UserMapper.toModel(userFound);
+  }
+
   async update(
     _id: string,
     updateUserDto: UpdateUserDto,
@@ -66,7 +75,7 @@ export class UsersService {
 
     const userUpdated = await this.userModel.findOneAndUpdate(
       { _id: { $eq: userFound.id } },
-      { $regex: `/${updateUserDto}/` },
+      { ...updateUserDto },
       {
         new: true,
         __v: false,
@@ -77,6 +86,6 @@ export class UsersService {
 
   async remove(_id: string): Promise<void> {
     const userFound = await this.findOneById(_id);
-    await this.userModel.remove(userFound.id);
+    await this.userModel.remove({ _id: { $eq: userFound.id } });
   }
 }
