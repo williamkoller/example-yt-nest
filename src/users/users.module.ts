@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
+import { Bcrypt } from 'src/shared/cryptography/bcrypt';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { User, UserSchema } from './schemas/user.schema';
     ]),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, Bcrypt],
 })
 export class UsersModule {}
