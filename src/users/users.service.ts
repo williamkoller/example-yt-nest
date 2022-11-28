@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { genSaltSync, hashSync } from 'bcrypt';
 import { Model } from 'mongoose';
+import { Bcrypt } from 'src/shared/cryptography/bcrypt';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserMapper } from './mappers/user/user.mapper';
@@ -16,6 +16,7 @@ import { UserResponseType } from './types/user/user.response.type';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly bcrypt: Bcrypt,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<UserResponseType> {
     const userFound = await this.findOneByEmail(createUserDto.email);
@@ -26,7 +27,7 @@ export class UsersService {
 
     const newData = {
       ...createUserDto,
-      password: hashSync(createUserDto.password, genSaltSync()),
+      password: await this.bcrypt.hash(createUserDto.password),
     };
 
     const userCreated = new this.userModel(newData);
@@ -37,6 +38,11 @@ export class UsersService {
 
   async findAll(): Promise<UserResponseType[]> {
     const users = await this.userModel.find({}, { __v: false });
+
+    if (!users.length) {
+      throw new NotFoundException('No record found.');
+    }
+
     return UserMapper.toModels(users);
   }
 
