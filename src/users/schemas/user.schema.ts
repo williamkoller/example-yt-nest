@@ -13,8 +13,6 @@ export class User {
     type: String,
     default: () => randomUUID(),
     required: true,
-    unique: true,
-    index: true,
   })
   _id!: string;
 
