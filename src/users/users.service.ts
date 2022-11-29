@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -14,11 +15,12 @@ import { UserResponseType } from './types/user/user.response.type';
 
 @Injectable()
 export class UsersService {
+  private logger = new Logger(UsersService.name);
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly bcrypt: Bcrypt,
   ) {}
-  async create(createUserDto: CreateUserDto): Promise<UserResponseType> {
+  public async create(createUserDto: CreateUserDto): Promise<UserResponseType> {
     const userFound = await this.findOneByEmail(createUserDto.email);
 
     if (userFound) {
@@ -36,7 +38,7 @@ export class UsersService {
     return UserMapper.toModel(userSaved);
   }
 
-  async findAll(): Promise<UserResponseType[]> {
+  public async findAll(): Promise<UserResponseType[]> {
     const users = await this.userModel.find({}, { __v: false });
 
     if (!users.length) {
@@ -46,7 +48,7 @@ export class UsersService {
     return UserMapper.toModels(users);
   }
 
-  async findOneById(_id: string): Promise<UserResponseType> {
+  public async findOneById(_id: string): Promise<UserResponseType> {
     const userFound = await this.userModel.findOne({
       _id: { $eq: _id },
     });
@@ -58,13 +60,13 @@ export class UsersService {
     return UserMapper.toModel(userFound);
   }
 
-  async findOneByEmail(email: string): Promise<User> {
+  public async findOneByEmail(email: string): Promise<User> {
     return await this.userModel.findOne({
       email: { $eq: email },
     });
   }
 
-  async findOneEmail(email: string): Promise<UserResponseType> {
+  public async findOneEmail(email: string): Promise<UserResponseType> {
     const userFound = await this.findOneByEmail(email);
     if (!userFound) {
       throw new NotFoundException('User not found');
@@ -73,7 +75,7 @@ export class UsersService {
     return UserMapper.toModel(userFound);
   }
 
-  async update(
+  public async update(
     _id: string,
     updateUserDto: UpdateUserDto,
   ): Promise<UserResponseType> {
@@ -90,8 +92,12 @@ export class UsersService {
     return UserMapper.toModel(userUpdated);
   }
 
-  async remove(_id: string): Promise<void> {
+  public async remove(_id: string): Promise<void> {
     const userFound = await this.findOneById(_id);
     await this.userModel.remove({ _id: { $eq: userFound.id } });
+  }
+
+  public async findUserByToken(_id: string): Promise<UserResponseType> {
+    return await this.findOneById(_id);
   }
 }
